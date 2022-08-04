@@ -7,8 +7,6 @@ version '0.1.1'
 
 apply plugin: 'java'
 apply plugin: 'application'
-apply plugin: 'maven-publish'
-apply plugin: 'com.jfrog.bintray'
 
 sourceCompatibility = 1.8
 
@@ -49,45 +47,6 @@ def pomConfig = {
   }
   scm {
     url "https://github.com/squark-io/timewise.git"
-  }
-}
-
-publishing {
-  publications {
-    mavenJava(MavenPublication) {
-      from components.java
-
-      artifact sourceJar
-      artifact javadocJar
-      pom.withXml {
-        def root = asNode()
-        root.appendNode('description', 'Combines multiple swagger.json files')
-        root.appendNode('name', 'SwaggerCombine')
-        root.appendNode('url', 'https://squark.io')
-        root.children().last() + pomConfig
-      }
-    }
-  }
-}
-
-bintray {
-  Properties properties = new Properties()
-  properties.load( new FileInputStream("local.properties"))
-
-  user = properties.getProperty("bintray.user")
-  key = properties.getProperty("bintray.apikey")
-
-  publications = ['mavenJava']
-  pkg {
-    repo = 'squark.io'
-    name = 'swagger-combine'
-    userOrg = 'squark-io'
-    licenses = ['Apache-2.0']
-    vcsUrl = 'https://github.com/squark-io/swagger-combine.git'
-    publish = true
-    version {
-      name = rootProject.version
-    }
   }
 }
 
