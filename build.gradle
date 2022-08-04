@@ -1,7 +1,3 @@
-plugins {
-  id "com.jfrog.bintray" version "1.7.3"
-}
-
 group 'io.squark'
 version '0.2.0-SNAPSHOT'
 
@@ -44,6 +40,11 @@ def pomConfig = {
       id "erik"
       name "Erik Håkansson"
       email "erik@squark.io"
+    }
+    developer{
+      id "olegthelilfix"
+      name "Oleg Aleksandrov"
+      email "rentert+swagercombine@proton.me"
     }
   }
   scm {
