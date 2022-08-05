@@ -1,16 +1,15 @@
 /**
  * Copyright (C) 2007 Erik Håkansson
  * Copyright (C) 2022 Oleg Aleksandrov
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
- *
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  */
 package io.squark.swaggercombine;
 
@@ -19,7 +18,6 @@ import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
 
@@ -50,12 +48,12 @@ public class SwaggerCombine {
 
     private Swagger firstSwagger;
     private List<Swagger> swaggers = new ArrayList<>();
-    private Properties properties;
+    private final CommandLinePropertiesParser properties;
 
-    public SwaggerCombine(List<String> files, Properties properties) throws Exception {
+    public SwaggerCombine(CommandLinePropertiesParser properties) throws Exception {
         this.properties = properties;
         boolean first = true;
-        for (String fileName : files) {
+        for (String fileName : properties.get(CommandLineArguments.INPUT_FILE)) {
             File file = new File(fileName);
             if (!file.exists()) {
                 throw new Exception("File not found: " + file.getAbsolutePath());
@@ -72,9 +70,14 @@ public class SwaggerCombine {
     }
 
     public Swagger combine() {
+        String useStripBasePath =
+                properties.get(CommandLineArguments.STRIP_BASE_PATH)
+                        .stream()
+                        .findFirst()
+                        .orElse("false");
 
-        boolean stripBasePath = (properties != null &&
-                Boolean.parseBoolean(properties.getProperty("--stripBasePath", "false")));
+        boolean stripBasePath = Boolean.parseBoolean(useStripBasePath);
+
         for (Swagger swagger : swaggers) {
             if (swagger.getTags() != null) {
                 for (Tag tag : swagger.getTags()) {
@@ -148,22 +151,15 @@ public class SwaggerCombine {
     }
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 2) {
+        CommandLinePropertiesParser properties = new CommandLinePropertiesParser(args);
+
+        if (properties.get(CommandLineArguments.INPUT_FILE).size() < 2) {
             System.out.println("usage: swagger-combine base.json swagger2.json swagger3.json");
             System.out.println("Please use at least two input files");
             System.exit(1);
         }
-        List<String> arguments = new ArrayList<>();
-        Properties properties = new Properties();
-        for (String arg : args) {
-            if (arg.startsWith("--")) {
-                String[] split = arg.split("=");
-                properties.setProperty(split[0], split[1]);
-            } else {
-                arguments.add(arg);
-            }
-        }
-        SwaggerCombine swaggerCombine = new SwaggerCombine(arguments, properties);
+
+        SwaggerCombine swaggerCombine = new SwaggerCombine(properties);
         Swagger combined = swaggerCombine.combine();
 
         ObjectMapper mapper = Json.mapper();
@@ -175,10 +171,12 @@ public class SwaggerCombine {
         mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-        String outputFile = properties.getProperty("--outputFile");
-        if (outputFile == null) {
-            outputFile = "result.json";
-        }
+        String outputFile =
+                properties.get(CommandLineArguments.OUTPUT_FILE)
+                        .stream()
+                        .findFirst()
+                        .orElse("result.json");
+
         File output = new File(outputFile);
         mapper.writer(new DefaultPrettyPrinter()).writeValue(output, combined);
 
