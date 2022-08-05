@@ -3,61 +3,82 @@ version '0.2.0-SNAPSHOT'
 
 apply plugin: 'java'
 apply plugin: 'application'
+apply plugin: 'kotlin'
 
 sourceCompatibility = 1.11
 targetCompatibility = 1.11
 
 mainClassName = 'io.squark.swaggercombine.SwaggerCombine'
 
-task (fatJar, type: Jar) {
-  manifest {
-    attributes 'Main-Class': mainClassName
-  }
-  archivesBaseName = project.name + '-all'
-  from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-  with jar
+task(fatJar, type: Jar) {
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
+    archivesBaseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
 }
 
-task (sourceJar, type: Jar) {
-  from sourceSets.main.allJava
-  classifier "sources"
+task(sourceJar, type: Jar) {
+    from sourceSets.main.allJava
+    classifier "sources"
 }
-task (javadocJar, type: Jar) {
-  from javadoc
-  classifier "javadoc"
+task(javadocJar, type: Jar) {
+    from javadoc
+    classifier "javadoc"
 }
 
 def pomConfig = {
-  licenses {
-    license {
-      name "The Apache Software License, Version 2.0"
-      url "http://www.apache.org/licenses/LICENSE-2.0.txt"
-      distribution "repo"
+    licenses {
+        license {
+            name "The Apache Software License, Version 2.0"
+            url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            distribution "repo"
+        }
     }
-  }
-  developers {
-    developer {
-      id "erik"
-      name "Erik Håkansson"
-      email "erik@squark.io"
+    developers {
+        developer {
+            id "erik"
+            name "Erik Håkansson"
+            email "erik@squark.io"
+        }
+        developer {
+            id "olegthelilfix"
+            name "Oleg Aleksandrov"
+            email "rentert+swagercombine@proton.me"
+        }
     }
-    developer{
-      id "olegthelilfix"
-      name "Oleg Aleksandrov"
-      email "rentert+swagercombine@proton.me"
+    scm {
+        url "https://github.com/squark-io/timewise.git"
     }
-  }
-  scm {
-    url "https://github.com/squark-io/timewise.git"
-  }
 }
 
 repositories {
-  mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-  implementation group: 'io.swagger', name: 'swagger-parser', version: '1.0.61'
-  implementation group: 'io.swagger', name: 'swagger-core', version: '1.6.6'
-  testImplementation group: 'junit', name: 'junit', version: '4.13.2'
+    implementation "io.swagger:swagger-parser:$swagger_parser_version"
+    implementation "io.swagger:swagger-core:$swagger_core_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    testImplementation "junit:junit:$junit_version"
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
 }
