@@ -1,102 +1,84 @@
-plugins {
-  id "com.jfrog.bintray" version "1.7.3"
-}
-
 group 'io.squark'
-version '0.1.1'
+version '0.2.0-SNAPSHOT'
 
 apply plugin: 'java'
 apply plugin: 'application'
-apply plugin: 'maven-publish'
-apply plugin: 'com.jfrog.bintray'
+apply plugin: 'kotlin'
 
-sourceCompatibility = 1.8
+sourceCompatibility = 1.11
+targetCompatibility = 1.11
 
 mainClassName = 'io.squark.swaggercombine.SwaggerCombine'
 
-task (fatJar, type: Jar) {
-  manifest {
-    attributes 'Main-Class': mainClassName
-  }
-  baseName = project.name + '-all'
-  from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-  with jar
+task(fatJar, type: Jar) {
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
+    archivesBaseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
 }
 
-task (sourceJar, type: Jar) {
-  from sourceSets.main.allJava
-  classifier "sources"
+task(sourceJar, type: Jar) {
+    from sourceSets.main.allJava
+    classifier "sources"
 }
-task (javadocJar, type: Jar) {
-  from javadoc
-  classifier "javadoc"
+task(javadocJar, type: Jar) {
+    from javadoc
+    classifier "javadoc"
 }
 
 def pomConfig = {
-  licenses {
-    license {
-      name "The Apache Software License, Version 2.0"
-      url "http://www.apache.org/licenses/LICENSE-2.0.txt"
-      distribution "repo"
+    licenses {
+        license {
+            name "The Apache Software License, Version 2.0"
+            url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            distribution "repo"
+        }
     }
-  }
-  developers {
-    developer {
-      id "erik"
-      name "Erik Håkansson"
-      email "erik@squark.io"
+    developers {
+        developer {
+            id "erik"
+            name "Erik Håkansson"
+            email "erik@squark.io"
+        }
+        developer {
+            id "olegthelilfix"
+            name "Oleg Aleksandrov"
+            email "rentert+swagercombine@proton.me"
+        }
     }
-  }
-  scm {
-    url "https://github.com/squark-io/timewise.git"
-  }
-}
-
-publishing {
-  publications {
-    mavenJava(MavenPublication) {
-      from components.java
-
-      artifact sourceJar
-      artifact javadocJar
-      pom.withXml {
-        def root = asNode()
-        root.appendNode('description', 'Combines multiple swagger.json files')
-        root.appendNode('name', 'SwaggerCombine')
-        root.appendNode('url', 'https://squark.io')
-        root.children().last() + pomConfig
-      }
+    scm {
+        url "https://github.com/squark-io/timewise.git"
     }
-  }
-}
-
-bintray {
-  Properties properties = new Properties()
-  properties.load( new FileInputStream("local.properties"))
-
-  user = properties.getProperty("bintray.user")
-  key = properties.getProperty("bintray.apikey")
-
-  publications = ['mavenJava']
-  pkg {
-    repo = 'squark.io'
-    name = 'swagger-combine'
-    userOrg = 'squark-io'
-    licenses = ['Apache-2.0']
-    vcsUrl = 'https://github.com/squark-io/swagger-combine.git'
-    publish = true
-    version {
-      name = rootProject.version
-    }
-  }
 }
 
 repositories {
-  mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-  compile group: 'io.swagger', name: 'swagger-parser', version: '1.0.25'
-  compile group: 'io.swagger', name: 'swagger-core', version: '1.5.12'
-  testCompile group: 'junit', name: 'junit', version: '4.11'
+    implementation "io.swagger:swagger-parser:$swagger_parser_version"
+    implementation "io.swagger:swagger-core:$swagger_core_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    testImplementation "junit:junit:$junit_version"
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
 }
