@@ -64,19 +64,12 @@ dependencies {
     testImplementation "junit:junit:$junit_version"
 }
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-}
 compileKotlin {
     kotlinOptions {
         jvmTarget = "11"
     }
 }
+
 compileTestKotlin {
     kotlinOptions {
         jvmTarget = "11"
@@ -86,6 +79,7 @@ compileTestKotlin {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     testImplementation "junit:junit:$junit_version"
 }
+
 buildscript {
     repositories {
         mavenCentral()
@@ -94,11 +88,13 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
+
 compileKotlin {
     kotlinOptions {
         jvmTarget = "11"
     }
 }
+
 compileTestKotlin {
     kotlinOptions {
         jvmTarget = "11"
