@@ -2,8 +2,8 @@ group 'io.squark'
 version '0.2.0-SNAPSHOT'
 
 apply plugin: 'java'
-apply plugin: 'application'
 apply plugin: 'kotlin'
+apply plugin: 'application'
 
 sourceCompatibility = 1.11
 targetCompatibility = 1.11
@@ -64,6 +64,22 @@ dependencies {
     testImplementation "junit:junit:$junit_version"
 }
 
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+}
+
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+    implementation "io.swagger:swagger-parser:$swagger_parser_version"
+    implementation "io.swagger:swagger-core:$swagger_core_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    testImplementation "junit:junit:$junit_version"
+}
+
 buildscript {
     repositories {
         mavenCentral()
@@ -72,11 +88,13 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
+
 compileKotlin {
     kotlinOptions {
         jvmTarget = "11"
     }
 }
+
 compileTestKotlin {
     kotlinOptions {
         jvmTarget = "11"
