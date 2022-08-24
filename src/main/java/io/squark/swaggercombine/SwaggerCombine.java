@@ -1,6 +1,5 @@
 /**
- * Copyright (C) 2007 Erik Håkansson
- * Copyright (C) 2022 Oleg Aleksandrov
+ * Copyright (C) 2007 Erik Håkansson Copyright (C) 2022 Oleg Aleksandrov
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,21 +12,6 @@
  */
 package io.squark.swaggercombine;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.io.IOUtils;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.Module;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-
 import io.swagger.models.Model;
 import io.swagger.models.Path;
 import io.swagger.models.Response;
@@ -37,85 +21,73 @@ import io.swagger.models.Swagger;
 import io.swagger.models.Tag;
 import io.swagger.models.auth.SecuritySchemeDefinition;
 import io.swagger.models.parameters.Parameter;
-import io.swagger.parser.SwaggerParser;
-import io.swagger.util.DeserializationModule;
-import io.swagger.util.Json;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by erik on 2017-01-05.
  */
 public class SwaggerCombine {
 
-    private Swagger firstSwagger;
-    private List<Swagger> swaggers = new ArrayList<>();
-    private final CommandLinePropertiesParser properties;
+    private final CommandLineProperties properties;
 
-    public SwaggerCombine(CommandLinePropertiesParser properties) throws Exception {
+    private final List<Swagger> swaggers;
+
+    public SwaggerCombine(CommandLineProperties properties, List<Swagger> swaggers) {
         this.properties = properties;
-        boolean first = true;
-        for (String fileName : properties.get(CommandLineArguments.INPUT_FILE)) {
-            File file = new File(fileName);
-            if (!file.exists()) {
-                throw new Exception("File not found: " + file.getAbsolutePath());
-            }
-            SwaggerParser swaggerParser = new SwaggerParser();
-            Swagger swagger = swaggerParser.parse(IOUtils.toString(new FileInputStream(file)));
-            if (first) {
-                this.firstSwagger = swagger;
-                first = false;
-            } else {
-                swaggers.add(swagger);
-            }
-        }
+        this.swaggers = swaggers;
     }
 
     public Swagger combine() {
         String useStripBasePath =
-                properties.get(CommandLineArguments.STRIP_BASE_PATH)
+                properties.getArguments(CommandLineArguments.STRIP_BASE_PATH)
                         .stream()
                         .findFirst()
                         .orElse("false");
 
         boolean stripBasePath = Boolean.parseBoolean(useStripBasePath);
 
+        Swagger combinedSwagger = swaggers.get(0);
+
         for (Swagger swagger : swaggers) {
             if (swagger.getTags() != null) {
                 for (Tag tag : swagger.getTags()) {
-                    firstSwagger.tag(tag);
+                    combinedSwagger.tag(tag);
                 }
             }
             if (swagger.getSchemes() != null) {
                 for (Scheme scheme : swagger.getSchemes()) {
-                    firstSwagger.scheme(scheme);
+                    combinedSwagger.scheme(scheme);
                 }
             }
             if (swagger.getConsumes() != null) {
                 for (String consumes : swagger.getConsumes()) {
-                    firstSwagger.consumes(consumes);
+                    combinedSwagger.consumes(consumes);
                 }
             }
             if (swagger.getProduces() != null) {
                 for (String produces : swagger.getProduces()) {
-                    firstSwagger.produces(produces);
+                    combinedSwagger.produces(produces);
                 }
             }
             if (swagger.getSecurity() != null) {
                 for (SecurityRequirement securityRequirement : swagger.getSecurity()) {
-                    firstSwagger.security(securityRequirement);
+                    combinedSwagger.security(securityRequirement);
                 }
             }
             if (swagger.getPaths() != null) {
                 for (Map.Entry<String, Path> path : swagger.getPaths().entrySet()) {
                     if (stripBasePath) {
                         String replacedPath = path.getKey();
-                        if (path.getKey().startsWith(firstSwagger.getBasePath()) || path.getKey().startsWith("/" + firstSwagger.getBasePath())) {
+                        if (path.getKey().startsWith(combinedSwagger.getBasePath()) || path.getKey().startsWith("/" + combinedSwagger.getBasePath())) {
                             replacedPath = path.getKey()
-                                    .replace(firstSwagger.getBasePath(), "")
+                                    .replace(combinedSwagger.getBasePath(), "")
                                     .replaceAll("//", "/");
                         }
-                        firstSwagger.path(replacedPath, path.getValue());
+                        combinedSwagger.path(replacedPath, path.getValue());
                     } else {
-                        firstSwagger.path(path.getKey(), path.getValue());
+                        combinedSwagger.path(path.getKey(), path.getValue());
                     }
                 }
             }
@@ -123,62 +95,50 @@ public class SwaggerCombine {
             if (swagger.getSecurityDefinitions() != null) {
                 for (Map.Entry<String, SecuritySchemeDefinition> securityDefinition :
                         swagger.getSecurityDefinitions().entrySet()) {
-                    firstSwagger.securityDefinition(securityDefinition.getKey(), securityDefinition.getValue());
+                    combinedSwagger.securityDefinition(securityDefinition.getKey(), securityDefinition.getValue());
                 }
             }
             if (swagger.getDefinitions() != null) {
                 for (Map.Entry<String, Model> definition : swagger.getDefinitions().entrySet()) {
-                    firstSwagger.addDefinition(definition.getKey(), definition.getValue());
+                    combinedSwagger.addDefinition(definition.getKey(), definition.getValue());
                 }
             }
             if (swagger.getParameters() != null) {
                 for (Map.Entry<String, Parameter> parameter : swagger.getParameters().entrySet()) {
-                    firstSwagger.parameter(parameter.getKey(), parameter.getValue());
+                    combinedSwagger.parameter(parameter.getKey(), parameter.getValue());
                 }
             }
             if (swagger.getResponses() != null) {
                 for (Map.Entry<String, Response> response : swagger.getResponses().entrySet()) {
-                    firstSwagger.response(response.getKey(), response.getValue());
+                    combinedSwagger.response(response.getKey(), response.getValue());
                 }
             }
             if (swagger.getVendorExtensions() != null) {
                 for (Map.Entry<String, Object> vendorExtension : swagger.getVendorExtensions().entrySet()) {
-                    firstSwagger.vendorExtension(vendorExtension.getKey(), vendorExtension.getValue());
+                    combinedSwagger.vendorExtension(vendorExtension.getKey(), vendorExtension.getValue());
                 }
             }
         }
-        return firstSwagger;
+        return combinedSwagger;
     }
 
     public static void main(String[] args) throws Exception {
-        CommandLinePropertiesParser properties = new CommandLinePropertiesParser(args);
+        CommandLineProperties properties = new CommandLineProperties(args);
 
-        if (properties.get(CommandLineArguments.INPUT_FILE).size() < 2) {
+        if (properties.getArguments(CommandLineArguments.INPUT_FILE).size() < 2) {
             System.out.println("usage: swagger-combine base.json swagger2.json swagger3.json");
             System.out.println("Please use at least two input files");
             System.exit(1);
         }
 
-        SwaggerCombine swaggerCombine = new SwaggerCombine(properties);
+        SwaggerSpecificationsReader swaggerSpecificationsParser = new SwaggerSpecificationsReader(properties);
+
+        SwaggerCombine swaggerCombine = new SwaggerCombine(properties, swaggerSpecificationsParser.getSwaggers());
         Swagger combined = swaggerCombine.combine();
 
-        ObjectMapper mapper = Json.mapper();
+        SwaggerSpecificationsWriter swaggerSpecificationsWriter = new SwaggerSpecificationsWriter(properties, SwaggerSpecificationsWriter.createObjectMapper());
 
-        Module deserializerModule = new DeserializationModule(true, true);
-        mapper.registerModule(deserializerModule);
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-        String outputFile =
-                properties.get(CommandLineArguments.OUTPUT_FILE)
-                        .stream()
-                        .findFirst()
-                        .orElse("result.json");
-
-        File output = new File(outputFile);
-        mapper.writer(new DefaultPrettyPrinter()).writeValue(output, combined);
+        swaggerSpecificationsWriter.writeSwaggerSpecification(combined);
 
         System.out.println("Done.");
     }

@@ -18,14 +18,14 @@ package io.squark.swaggercombine
  * @author Oleg Aleksandrov
  * @since 0.2.0
  */
-class CommandLinePropertiesParser(args: Array<String>) {
+open class CommandLineProperties(args: Array<String>) {
     private val properties: Map<CommandLineArguments, List<String>> = parseCommandLineProperties(args)
 
     /**
      * Returns list of values associated to given command line argument.
      * @since 0.2.0
      */
-    fun get(arg: CommandLineArguments): List<String> {
+    open fun getArguments(arg: CommandLineArguments): List<String> {
         return properties[arg] ?: emptyList()
     }
 

@@ -16,19 +16,19 @@ import org.junit.Assert
 import org.junit.Test
 
 /**
- * Tests for [CommandLinePropertiesParser]
+ * Tests for [CommandLineProperties]
  *
  * @author Oleg Aleksandrov
  * @since 0.2.0
  */
-class CommandLinePropertiesParserTest {
+class CommandLinePropertiesTest {
 
     @Test
     fun `Inputs set up correctly`() {
         val inputFileName1 = "test1.json"
         val inputFileName2 = "test2.json"
 
-        val parser = CommandLinePropertiesParser(
+        val parser = CommandLineProperties(
             arrayOf(
                 CommandLineArguments.INPUT_FILE.value,
                 inputFileName1,
@@ -37,7 +37,7 @@ class CommandLinePropertiesParserTest {
             )
         )
 
-        val inputs = parser.get(CommandLineArguments.INPUT_FILE)
+        val inputs = parser.getArguments(CommandLineArguments.INPUT_FILE)
         Assert.assertTrue("Inputs should contains $inputFileName1", inputs.contains(inputFileName1))
         Assert.assertTrue("Inputs should contains $inputFileName2", inputs.contains(inputFileName2))
     }
@@ -45,43 +45,43 @@ class CommandLinePropertiesParserTest {
     @Test
     fun `Output set up correctly`() {
         val outputFileName = "output.json"
-        val parser = CommandLinePropertiesParser(
+        val parser = CommandLineProperties(
             arrayOf(
                 CommandLineArguments.OUTPUT_FILE.value,
                 outputFileName,
             )
         )
 
-        val outputs = parser.get(CommandLineArguments.OUTPUT_FILE)
+        val outputs = parser.getArguments(CommandLineArguments.OUTPUT_FILE)
         Assert.assertTrue("Outputs should contains $outputFileName", outputs.contains(outputFileName))
     }
 
     @Test
     fun `Strip base path set up correctly`() {
         val stripBasePath = true
-        val parser = CommandLinePropertiesParser(
+        val parser = CommandLineProperties(
             arrayOf(
                 CommandLineArguments.STRIP_BASE_PATH.value,
                 stripBasePath.toString()
             )
         )
 
-        val stripBasePaths = parser.get(CommandLineArguments.STRIP_BASE_PATH)
+        val stripBasePaths = parser.getArguments(CommandLineArguments.STRIP_BASE_PATH)
         Assert.assertTrue("Strip base paths should contains $stripBasePath", stripBasePaths.contains(stripBasePath.toString()))
     }
 
     @Test
     fun `Default properties value`() {
-        val parser = CommandLinePropertiesParser(arrayOf())
+        val parser = CommandLineProperties(arrayOf())
 
-        Assert.assertTrue("Inputs should be empty", parser.get(CommandLineArguments.INPUT_FILE).isEmpty())
-        Assert.assertTrue("Output file name should be empty", parser.get(CommandLineArguments.OUTPUT_FILE).isEmpty())
-        Assert.assertTrue("Strip base path should be empty", parser.get(CommandLineArguments.STRIP_BASE_PATH).isEmpty())
+        Assert.assertTrue("Inputs should be empty", parser.getArguments(CommandLineArguments.INPUT_FILE).isEmpty())
+        Assert.assertTrue("Output file name should be empty", parser.getArguments(CommandLineArguments.OUTPUT_FILE).isEmpty())
+        Assert.assertTrue("Strip base path should be empty", parser.getArguments(CommandLineArguments.STRIP_BASE_PATH).isEmpty())
     }
 
     @Test(expected = RuntimeException::class)
     fun `Wrong argument`() {
-        CommandLinePropertiesParser(
+        CommandLineProperties(
             arrayOf(
                 "--wrong argument",
                 "wrong argument",
