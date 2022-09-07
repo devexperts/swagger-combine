@@ -61,23 +61,11 @@ dependencies {
     implementation "io.swagger:swagger-parser:$swagger_parser_version"
     implementation "io.swagger:swagger-core:$swagger_core_version"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation 'org.slf4j:slf4j-api:2.0.0'
+    implementation 'org.slf4j:slf4j-simple:2.0.0'
     testImplementation "junit:junit:$junit_version"
-}
-
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = "11"
-    }
-}
-
-compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "11"
-    }
-    implementation "io.swagger:swagger-parser:$swagger_parser_version"
-    implementation "io.swagger:swagger-core:$swagger_core_version"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    testImplementation "junit:junit:$junit_version"
+    testImplementation "org.mockito:mockito-core:4.7.0"
+    testImplementation group: 'org.mockito.kotlin', name: 'mockito-kotlin', version: '4.0.0'
 }
 
 buildscript {
